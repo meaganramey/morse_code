@@ -12,30 +12,57 @@ Pause between words – is 7 time units long.
 __author__ = 'Meagan Ramey'
 
 from morse_dict import MORSE_2_ASCII
+import re
 
 
 def decode_bits(bits):
-    bits_list = bits.split()
-    letter_list = []
-    phrase = ''
-    for bit in bits_list:
-        letter_list.append(MORSE_2_ASCII.get(bit))
-        letter_list.append(' ')
-    for letter in letter_list:
-        if not letter:
-            phrase += ' '
-        phrase += letter
-    return phrase
+    bit_list = re.split(r'([0]+)', bits)
+    shortest_len = len(bits)
+    for bit in bit_list:
+        if bit == '':
+            bit_list.remove(bit)
+    if '0' in bit_list[0]:
+        bit_list.remove(bit_list[0])
+    if '0' in bit_list[-1]:
+        bit_list.remove(bit_list[-1])
+    for bit in bit_list:
+        if len(bit) < shortest_len:
+            shortest_len = len(bit)
+    code_list = []
+    for bit in bit_list:
+        if bit == '1'*shortest_len:
+            code_list.append('.')
+        elif bit == '111'*shortest_len:
+            code_list.append('-')
+        elif bit == '0'*shortest_len:
+            code_list.append('')
+        elif bit == '000'*shortest_len:
+            code_list.append(' ')
+        elif bit == '0000000'*shortest_len:
+            code_list.append('   ')
+    code_string = ''.join(code_list)
+    return code_string
 
 
 def decode_morse(morse):
-    # your code here
-    return
+    morse = morse.strip()
+    morse_string = morse.replace(' ', '*')
+    morse_list = morse_string.split('***')
+    letter_list = []
+    phrase = ''
+    for code in morse_list:
+        characters = code.split('*')
+        for char in characters:
+            letter_list.append(MORSE_2_ASCII.get(char))
+        word = ''.join(letter_list) + ' '
+        letter_list = []
+        phrase += word
+    return phrase.strip()
 
 
 if __name__ == '__main__':
     hey_jude_morse = ".... . -.--   .--- ..- -.. ."
-    hey_jude_bits = "11001100110011000000110000001111110011001111110011111100000000000000000000011001111110011111100111111000000110011001111110000001111110011001100000011"  # noqa
+    hey_jude_bits = "1100110011001100000011000000111111001100111111001111110000000000000011001111110011111100111111000000110011001111110000001111110011001100000011"  # noqa
 
     # Be sure to run all included unit tests, not just this one.
     print("Morse Code decoder test")
